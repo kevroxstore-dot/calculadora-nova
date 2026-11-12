@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Calculadora Nova</title>
+<meta name="theme-color" content="#1F4FD8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Calculadora Nova">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231F4FD8'/%3E%3Ctext x='50' y='68' font-size='56' text-anchor='middle' fill='white' font-family='Arial' font-weight='700'%3EN%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#EEF1F4; --panel:#FFFFFF; --ink:#14202B; --muted:#5D6B78; --line:#D8DEE5;
+  --accent:#1F4FD8; --accent-soft:#E3EAFC; --good:#10875A; --good-soft:#DDF3EA; --bad:#C2362B; --bad-soft:#FBE4E1;
+  --c1:#1F4FD8; --c2:#E08A1E; --c3:#8A4FD8; --c4:#6B7A88; --c5:#10875A;
+  --display:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif; --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono",monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E141B; --panel:#16202A; --ink:#E7EDF3; --muted:#93A1AE; --line:#26323F;
+  --accent:#6E93FF; --accent-soft:#1B2A4D; --good:#3FCB8E; --good-soft:#123326; --bad:#FF7A6E; --bad-soft:#3A1A17;
+  --c1:#6E93FF; --c2:#F2A848; --c3:#B48BFF; --c4:#8394A4; --c5:#3FCB8E; color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(40px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-size:1.6rem;margin:0;letter-spacing:-.02em}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);margin:2px 0 0;font-size:.9rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:600 .85rem var(--body);padding:7px 12px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel h2{font-family:var(--display);font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:0;font-weight:600}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:440px){.fields{grid-template-columns:minmax(0,1fr)}}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f.full{grid-column:1/-1}
+.f label{font-size:.8rem;font-weight:600;color:var(--muted)}
+.f .hint{font-size:.74rem;color:var(--muted)}
+.inp{display:flex;align-items:center;border:1px solid var(--line);border-radius:9px;background:var(--bg);overflow:hidden}
+.inp span{padding:0 10px;color:var(--muted);font:500 .85rem var(--mono)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:600 1rem var(--mono);padding:10px;font-variant-numeric:tabular-nums}
+.inp input:focus{outline:none}
+.inp:focus-within{border-color:var(--accent)}
+.sticky{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px)}
+@media (max-width:820px){.sticky{position:static}}
+.hero{display:flex;flex-direction:column;gap:2px}
+.hero .lbl{font-size:.8rem;font-weight:600;color:var(--muted)}
+.hero .big{font:700 2.6rem var(--display);letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1;overflow-wrap:anywhere}
+.hero .round{font-size:.85rem;color:var(--muted)}
+.hero .round b{color:var(--accent);font-family:var(--mono)}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line)}
+.bar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.rows{display:flex;flex-direction:column}
+.row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:.92rem}
+.row:last-child{border-bottom:0}
+.row b{font:600 .95rem var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.row.total{font-weight:700}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.kpi{border-radius:10px;padding:12px;background:var(--bg);display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .lbl{font-size:.75rem;color:var(--muted);font-weight:600}
+.kpi .v{font:600 1.15rem var(--mono);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.kpi.good{background:var(--good-soft)} .kpi.good .v{color:var(--good)}
+.kpi.acc{background:var(--accent-soft)} .kpi.acc .v{color:var(--accent)}
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:.75rem;font-weight:700}
+.pill.good{background:var(--good-soft);color:var(--good)} .pill.bad{background:var(--bad-soft);color:var(--bad)}
+.test{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.test p{margin:0;font-size:.88rem}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button.b{font:600 .85rem var(--body);border-radius:9px;padding:9px 14px;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+button.b.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.saved{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;flex-wrap:wrap}
+.item .n{font-weight:700} .item .m{font-size:.8rem;color:var(--muted)}
+.item .acts{display:flex;gap:6px}
+.empty{color:var(--muted);font-size:.88rem;margin:0}
+.note{font-size:.8rem;color:var(--muted);margin:0;max-width:70ch}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-weight:600;font-size:.85rem}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Calculadora <span>Nova</span></h1>
+      <p class="sub">Precio de venta contraentrega con fletes de devolución y CPA costeado.</p>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="País"></div>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="t-datos">
+      <h2 id="t-datos">Datos del producto</h2>
+      <div class="fields">
+        <div class="f full"><label for="nombre">Nombre del producto</label>
+          <div class="inp"><input id="nombre" type="text" placeholder="Ej. Boquilla Turbo" style="font-family:var(--body)"></div></div>
+        <div class="f"><label for="prov">Precio proveedor</label><div class="inp"><span class="cur"></span><input id="prov" inputmode="decimal"></div></div>
+        <div class="f"><label for="flete">Flete base</label><div class="inp"><span class="cur"></span><input id="flete" inputmode="decimal"></div></div>
+        <div class="f"><label for="ent">Entrega sobre despachado</label><div class="inp"><input id="ent" inputmode="decimal"><span>%</span></div>
+          <span class="hint">Pedidos entregados de los despachados</span></div>
+        <div class="f"><label for="cpa">CPA Ads Manager</label><div class="inp"><span class="cur"></span><input id="cpa" inputmode="decimal"></div></div>
+        <div class="f"><label for="adm">Costos administrativos</label><div class="inp"><span class="cur"></span><input id="adm" inputmode="decimal"></div></div>
+        <div class="f"><label for="ful">Fulfillment</label><div class="inp"><span class="cur"></span><input id="ful" inputmode="decimal"></div></div>
+        <div class="f"><label for="aj">Ajuste para CPA</label><div class="inp"><span>−</span><input id="aj" inputmode="decimal"><span>%</span></div>
+          <span class="hint">Cancelados y rechazados que se restan a la entrega</span></div>
+        <div class="f"><label for="mar">Margen de utilidad</label><div class="inp"><input id="mar" inputmode="decimal"><span>%</span></div>
+          <span class="hint">Sobre el precio de venta</span></div>
+      </div>
+
+      <h2>Proyección de ganancia</h2>
+      <div class="fields">
+        <div class="f"><label for="vd">Ventas diarias</label><div class="inp"><input id="vd" inputmode="numeric"><span>pedidos</span></div></div>
+        <div class="f"><label for="dias">Días del mes</label><div class="inp"><input id="dias" inputmode="numeric"><span>días</span></div></div>
+      </div>
+      <p class="note">La ganancia se calcula sobre los pedidos efectivos: ventas × utilidad × efectividad (entrega menos el ajuste).</p>
+    </section>
+
+    <section class="panel sticky" aria-labelledby="t-res">
+      <h2 id="t-res">Resultado</h2>
+      <div class="hero">
+        <span class="lbl">Precio de venta</span>
+        <span class="big" id="r-precio">—</span>
+        <span class="round">Precio sugerido para publicar: <b id="r-round">—</b></span>
+      </div>
+      <div>
+        <div class="bar" id="bar"></div>
+        <div class="legend" id="legend" style="margin-top:8px"></div>
+      </div>
+      <div class="rows">
+        <div class="row"><span>Precio proveedor</span><b id="r-prov"></b></div>
+        <div class="row"><span>Flete con devoluciones</span><b id="r-flete"></b></div>
+        <div class="row"><span>CPA costeado <span id="r-efec" style="color:var(--muted);font-size:.8rem"></span></span><b id="r-cpa"></b></div>
+        <div class="row"><span>Admin + fulfillment</span><b id="r-adm"></b></div>
+        <div class="row total"><span>Costos totales</span><b id="r-total"></b></div>
+        <div class="row"><span>Utilidad por pedido</span><b id="r-util" style="color:var(--good)"></b></div>
+      </div>
+      <div class="kpis">
+        <div class="kpi acc"><span class="lbl">Precio de comparación (−50%)</span><span class="v" id="r-comp"></span></div>
+        <div class="kpi"><span class="lbl">CPA break even</span><span class="v" id="r-bep"></span></div>
+        <div class="kpi good"><span class="lbl">Ganancia diaria</span><span class="v" id="r-dia"></span></div>
+        <div class="kpi good"><span class="lbl">Ganancia mensual</span><span class="v" id="r-mes"></span></div>
+      </div>
+
+      <div class="test">
+        <h2>¿Y si lo vendo a otro precio?</h2>
+        <div class="f"><label for="pt">Precio que quiero cobrar</label><div class="inp"><span class="cur"></span><input id="pt" inputmode="decimal" placeholder="Escribe un precio"></div></div>
+        <p id="r-test" class="empty">Escribe un precio para ver cuánto te queda por pedido.</p>
+      </div>
+
+      <div class="btns">
+        <button class="b pri" id="save" type="button">Guardar producto</button>
+        <button class="b" id="copy" type="button">Copiar resumen</button>
+        <button class="b" id="reset" type="button">Restablecer país</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="t-saved">
+    <h2 id="t-saved">Productos guardados</h2>
+    <div class="saved" id="saved"></div>
+    <p class="note">Se guardan en este aparato. Funciona sin internet.</p>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const PAISES={
+  CO:{n:"Colombia",cur:"COP",loc:"es-CO",d:0,s:"$",v:{prov:13000,flete:18000,ent:80,cpa:15000,adm:0,ful:0,aj:20,mar:15}},
+  MX:{n:"México",cur:"MXN",loc:"es-MX",d:2,s:"$",v:{prov:120,flete:145,ent:65,cpa:90,adm:0,ful:0,aj:10,mar:10}},
+  EC:{n:"Ecuador",cur:"USD",loc:"es-EC",d:2,s:"$",v:{prov:30,flete:7,ent:70,cpa:4,adm:0,ful:0,aj:10,mar:10}},
+  ES:{n:"España",cur:"EUR",loc:"es-ES",d:2,s:"€",v:{prov:3,flete:5,ent:65,cpa:7,adm:0,ful:0,aj:10,mar:20}},
+  CL:{n:"Chile",cur:"CLP",loc:"es-CL",d:0,s:"$",v:{prov:3000,flete:6500,ent:70,cpa:4400,adm:0,ful:0,aj:10,mar:10}},
+  PE:{n:"Perú",cur:"PEN",loc:"es-PE",d:2,s:"S/",v:{prov:42.9,flete:15,ent:70,cpa:17,adm:0,ful:0,aj:10,mar:10}}
+};
+const KEYS=["prov","flete","ent","cpa","adm","ful","aj","mar"];
+const $=id=>document.getElementById(id);
+const store={get(k,f){try{const v=localStorage.getItem(k);return v?JSON.parse(v):f}catch(e){return f}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let pais=store.get("nova_pais","CO");
+let state=store.get("nova_state",{});
+let saved=store.get("nova_saved",[]);
+let last=null;
+
+const num=s=>{if(s==null)return 0;s=String(s).trim();if(!s)return 0;
+  if(/^\d{1,3}([.,]\d{3})+$/.test(s))s=s.replace(/[.,]/g,"");else s=s.replace(",",".");
+  const n=parseFloat(s);return isFinite(n)?n:0};
+const fmt=(v,p=PAISES[pais])=>{if(!isFinite(v))return"—";
+  return p.s+" "+v.toLocaleString(p.loc,{minimumFractionDigits:p.d,maximumFractionDigits:p.d})};
+const roundPrice=(v,p)=>{if(!isFinite(v)||v<=0)return NaN;
+  if(p.d===0){let r=Math.ceil(v/1000)*1000-100;if(r<v)r+=1000;return r}
+  let r=Math.ceil(v)-0.1;if(r<v)r+=1;return Math.round(r*100)/100};
+
+function calc(v){
+  const ent=v.ent/100, efec=(v.ent-v.aj)/100, mar=v.mar/100;
+  const fleteDev=v.flete/ent;
+  const cpaCost=v.cpa/efec;
+  const total=v.prov+fleteDev+v.adm+v.ful+cpaCost;
+  const util=total/(1-mar)-total;
+  const precio=total+util;
+  return {ent,efec,fleteDev,cpaCost,total,util,precio,comp:precio/0.5,bep:v.cpa+util};
+}
+function readForm(){const v={};KEYS.forEach(k=>v[k]=num($(k).value));return v}
+function fillForm(v){KEYS.forEach(k=>$(k).value=String(v[k]).replace(".",PAISES[pais].d?",":"."))}
+
+function chips(){
+  $("chips").innerHTML=Object.entries(PAISES).map(([k,p])=>`<button class="chip" type="button" data-k="${k}" aria-pressed="${k===pais}">${p.n}</button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach(b=>b.onclick=()=>{saveState();pais=b.dataset.k;store.set("nova_pais",pais);load();});
+}
+function load(){
+  chips();
+  document.querySelectorAll(".cur").forEach(e=>e.textContent=PAISES[pais].s);
+  fillForm(state[pais]||PAISES[pais].v);
+  render();
+}
+function saveState(){state[pais]=readForm();store.set("nova_state",state)}
+
+function render(){
+  const p=PAISES[pais], v=readForm(), r=calc(v);
+  const vd=num($("vd").value), dias=num($("dias").value);
+  const ok=r.ent>0&&r.efec>0&&v.mar<100;
+  last={v,r,p};
+  const set=(id,val)=>$(id).textContent=ok?fmt(val):"—";
+  set("r-precio",r.precio);$("r-round").textContent=ok?fmt(roundPrice(r.precio,p)):"—";
+  set("r-prov",v.prov);set("r-flete",r.fleteDev);set("r-cpa",r.cpaCost);set("r-adm",v.adm+v.ful);
+  set("r-total",r.total);set("r-util",r.util);set("r-comp",r.comp);set("r-bep",r.bep);
+  $("r-efec").textContent=ok?`· efectividad ${Math.round(r.efec*100)}%`:"";
+  set("r-dia",vd*r.util*r.efec);set("r-mes",vd*dias*r.util*r.efec);
+  const parts=[["Proveedor",v.prov,"--c1"],["Flete",r.fleteDev,"--c2"],["CPA",r.cpaCost,"--c3"],["Admin/fulfill.",v.adm+v.ful,"--c4"],["Utilidad",r.util,"--c5"]];
+  $("bar").innerHTML=ok?parts.map(([n,x,c])=>`<i style="width:${Math.max(0,x/r.precio*100)}%;background:var(${c})" title="${n}"></i>`).join(""):"";
+  $("legend").innerHTML=ok?parts.filter(x=>x[1]>0).map(([n,x,c])=>`<span><i style="background:var(${c})"></i>${n} ${Math.round(x/r.precio*100)}%</span>`).join(""):"";
+  const pt=num($("pt").value),t=$("r-test");
+  if(!pt||!ok){t.className="empty";t.textContent=ok?"Escribe un precio para ver cuánto te queda por pedido.":"Revisa la entrega, el ajuste y el margen: la entrega debe ser mayor que el ajuste y el margen menor a 100%.";}
+  else{const u=pt-r.total,m=u/pt*100,good=u>0;
+    t.className="";t.innerHTML=`Te quedan <b style="font-family:var(--mono)">${fmt(u)}</b> por pedido <span class="pill ${good?"good":"bad"}">${good?"Margen "+m.toFixed(1)+"%":"Pierdes plata"}</span><br><span style="color:var(--muted);font-size:.82rem">CPA break even a ese precio: ${fmt(v.cpa+u)} · ganancia mensual: ${fmt(vd*dias*u*r.efec)}</span>`;}
+  saveState();
+  store.set("nova_proj",{vd:$("vd").value,dias:$("dias").value});
+}
+
+function renderSaved(){
+  const el=$("saved");
+  if(!saved.length){el.innerHTML=`<p class="empty">Aún no hay productos. Llena los datos y toca «Guardar producto».</p>`;return}
+  el.innerHTML=saved.map((s,i)=>{const p=PAISES[s.pais];return `<div class="item"><div><div class="n">${esc(s.nombre)}</div>
+    <div class="m">${p.n} · venta ${fmt(s.precio,p)} · utilidad ${fmt(s.util,p)} · BEP ${fmt(s.bep,p)}</div></div>
+    <div class="acts"><button class="b" type="button" data-o="${i}">Abrir</button><button class="b" type="button" data-d="${i}">Borrar</button></div></div>`}).join("");
+  el.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{const s=saved[+b.dataset.o];pais=s.pais;store.set("nova_pais",pais);state[pais]=s.v;$("nombre").value=s.nombre;load();toast("Producto abierto");window.scrollTo({top:0,behavior:"smooth"})});
+  el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{
+    if(b.dataset.c){saved.splice(+b.dataset.d,1);store.set("nova_saved",saved);renderSaved();toast("Producto borrado")}
+    else{b.dataset.c=1;b.textContent="¿Seguro?";setTimeout(()=>{if(b.isConnected){delete b.dataset.c;b.textContent="Borrar"}},3000)}});
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let tt;function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,1800)}
+
+$("save").onclick=()=>{const {v,r}=last;const nombre=$("nombre").value.trim()||"Producto sin nombre";
+  const i=saved.findIndex(s=>s.nombre===nombre&&s.pais===pais);
+  const item={nombre,pais,v,precio:r.precio,util:r.util,bep:r.bep};
+  if(i>=0)saved[i]=item;else saved.unshift(item);store.set("nova_saved",saved);renderSaved();toast(i>=0?"Producto actualizado":"Producto guardado")};
+$("reset").onclick=()=>{state[pais]=PAISES[pais].v;fillForm(PAISES[pais].v);render();toast("Valores de "+PAISES[pais].n+" restablecidos")};
+$("copy").onclick=()=>{const {v,r,p}=last;const n=$("nombre").value.trim()||"Producto";
+  const txt=`${n} (${p.n})\nProveedor: ${fmt(v.prov)}\nFlete con devoluciones: ${fmt(r.fleteDev)}\nCPA costeado: ${fmt(r.cpaCost)}\nCostos totales: ${fmt(r.total)}\nUtilidad: ${fmt(r.util)}\nPrecio de venta: ${fmt(r.precio)} (publicar a ${fmt(roundPrice(r.precio,p))})\nPrecio de comparación: ${fmt(r.comp)}\nCPA break even: ${fmt(r.bep)}`;
+  const fallback=()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("Resumen copiado")}catch(e){toast("No se pudo copiar")}ta.remove()};
+  try{navigator.clipboard.writeText(txt).then(()=>toast("Resumen copiado"),fallback)}catch(e){fallback()}};
+
+document.querySelectorAll("input").forEach(i=>i.addEventListener("input",render));
+const proj=store.get("nova_proj",{vd:"100",dias:"30"});$("vd").value=proj.vd;$("dias").value=proj.dias;
+load();renderSaved();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
